@@ -1,0 +1,3 @@
+30.09.2021
+- make things run in hpc to obtain the final results
+- meet with dong to discuss the current progress, but couldn't proceed because daniel couldn't join
