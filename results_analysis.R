@@ -89,7 +89,7 @@ dataset %>%
 
 
 # check correlations
-tbl = table(dataset[c('form_request', 'basic_concept')])
+tbl = table(dataset[c('length_binned', 'form_request')])
 chi2 = chisq.test(tbl, correct=F)
 c(chi2$statistic, chi2$p.value)
 sqrt(chi2$statistic / sum(tbl))

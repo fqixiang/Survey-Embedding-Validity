@@ -175,7 +175,9 @@ def probe_form(data_questions, data_embeddings):
     n_train = len(train_y)
     n_test = len(test_y)
 
-    return(acc_score, dummy_acc, n_train, n_test)
+    pred_correct = [x == y for x,y in zip(test_y, prediction)]
+
+    return(acc_score, dummy_acc, n_train, n_test, pred_correct)
 
 
 def main():
@@ -282,7 +284,7 @@ def main():
         results_dict['n_test'].append(n_test)
 
     # probe form of requests
-    probe_acc_form, probe_acc_dummy, n_train, n_test = probe_form(df_merged, embeddings_df)
+    probe_acc_form, probe_acc_dummy, n_train, n_test, pred_correct = probe_form(df_merged, embeddings_df)
     if args.embeddings_data != 'random':
         results_dict['embeddings_type'].append(args.embeddings_data)
     else:
@@ -295,10 +297,19 @@ def main():
 
     results_df = pd.DataFrame(results_dict)
 
+    pred_df = pd.DataFrame(pred_correct, columns=['pred_binary'])
+
     if os.path.exists('./probing_results.csv'):
         results_df.to_csv('probing_results.csv', index=None, header=None, mode='a')
     else:
         results_df.to_csv('probing_results.csv', index=None, mode='a')
+
+    if os.path.exists('./probing_pred.csv'):
+        df = pd.read_csv('./probing_pred.csv')
+        pred_df = pd.concat([df, pred_df], axis=1)
+        pred_df.to_csv('probing_pred.csv', index=None)
+    else:
+        pred_df.to_csv('probing_pred.csv', index=None)
 
 if __name__ == '__main__':
     main()
@@ -347,5 +358,13 @@ if __name__ == '__main__':
 # test_ids
 
 # %%
+from statsmodels.stats.contingency_tables import mcnemar
+import pandas as pd
+
+df = pd.read_csv('./probing_pred.csv')
 
 # %%
+crossTab = pd.crosstab(df.pred_binary1, df.pred_binary2)
+
+# %%
+print(mcnemar(crossTab, exact=False))

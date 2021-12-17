@@ -3,7 +3,6 @@ import argparse
 import nltk
 from nltk.tokenize import RegexpTokenizer
 tokenizer = RegexpTokenizer(r'\w+')
-from datetime import datetime
 
 # %% a pronoun modifier
 def pronoun_modifier(text):
@@ -268,7 +267,7 @@ def judgments_rfa(statement, form_request, pre_rfa_ls):
         for pre_rfa in pre_rfa_ls:
             rfa_dec_int.append(pre_rfa + ' ' + 'whether' + ' ' + x.lower() + ' ' + I + ' ' + sc + '.')
             rfa_dec_int.append(pre_rfa + ' ' + 'if' + ' ' + x.lower() + ' ' + I + ' ' + sc + '.')
-            rfa_dec_int.append(pre_rfa + ' ' + 'what' + x.lower() + ' ' + I + '.')
+            rfa_dec_int.append(pre_rfa + ' ' + 'what' + ' ' + x.lower() + ' ' + I + '.')
 
         return rfa_dec_int
 
@@ -945,7 +944,7 @@ def synthetic_generator(datafile, form_request_ls):
 # %% Generate synthetic questions
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--datafile", type=str, default='./data/synthetic/Synthetic_Questions_Controlled_20210611.xlsx')
+    parser.add_argument("--datafile", type=str, default='./data/synthetic/Synthetic_Questions_Controlled.xlsx')
 
     args = parser.parse_args()
     datafile = args.datafile
@@ -1021,9 +1020,7 @@ def main():
                                   var_name='form_request',
                                   value_name='rfa')
 
-    now = datetime.now()
-    now = now.strftime("%Y%m%d%H%M%S")
-    save_path = './data/synthetic/Synthetic_Questions_Controlled_Variants_' + now + '.xlsx'
+    save_path = './data/synthetic/Synthetic_Questions_Controlled_Variants' + '.xlsx'
 
 
     synthetic_rfas_long.explode('rfa').reset_index(drop=True).to_excel(

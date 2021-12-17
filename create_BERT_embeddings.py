@@ -3,8 +3,6 @@ import pandas as pd
 from transformers import BertTokenizer, BertModel
 import pickle
 import argparse
-from datetime import datetime
-
 
 def create_BERT_embeddings(sentences, question_ids, model_name, save_name, save):
     # load tokenizer
@@ -31,7 +29,7 @@ def create_BERT_embeddings(sentences, question_ids, model_name, save_name, save)
 
     embeddings_ls = []
     for i in range(len(sentences)):
-        layer_last_two = hidden_states[-2][i]
+        layer_last_two = hidden_states[-1][i] #changed to last 1 layer
         ave_layser_last_two = torch.mean(layer_last_two, dim=0)
         embeddings_ls.append(ave_layser_last_two.numpy())
 
@@ -43,9 +41,7 @@ def create_BERT_embeddings(sentences, question_ids, model_name, save_name, save)
 
     # save or not
     if save:
-        now = datetime.now()
-        now = now.strftime("%Y%m%d%H%M%S")
-        save_path = './data/embeddings/' + save_name + '_' + model_name.replace("-", "_") + "_" + now + '.pkl'
+        save_path = './data/embeddings/' + save_name + '_' + model_name.replace("-", "_") + '.pkl'
         embedding_df.to_pickle(save_path,
                                protocol=pickle.HIGHEST_PROTOCOL)
 

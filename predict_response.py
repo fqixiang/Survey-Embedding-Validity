@@ -1,17 +1,13 @@
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import KFold, RandomizedSearchCV
-from sklearn.metrics import mean_squared_error
 from sklearn.linear_model import LassoCV, RidgeCV
 from sklearn.ensemble import RandomForestRegressor
 import argparse
-import pickle
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
 from sklearn.preprocessing import StandardScaler
 import string
 import os
-from scipy.stats import pearsonr
-from scipy.stats import spearmanr
 
 
 # function to make vocab dictionary
@@ -43,7 +39,7 @@ def make_random_embeddings_dict(questions_vocab, size, seed):
 def make_random_embeddings(random_word_embeddings_dict, questions_ls_train, questions_ls_all, size):
     questions_vocab_train = make_dictionary(questions_ls_train)
 
-    zero_embedding = np.zeros(size)
+    #zero_embedding = np.zeros(size)
 
     # make random sentence embeddings
     random_sent_embeddings_ls = []
@@ -55,7 +51,7 @@ def make_random_embeddings(random_word_embeddings_dict, questions_ls_train, ques
         for word in rfa_ready:
             if word in questions_vocab_train:
                 rfa_word_embeddings.append(random_word_embeddings_dict[word])
-            else: rfa_word_embeddings.append(zero_embedding)
+            #else: rfa_word_embeddings.append(zero_embedding)
 
         rfa_word_embeddings = np.array(rfa_word_embeddings)
         rfa_sent_embeddings = np.mean(rfa_word_embeddings, axis=0)
@@ -300,16 +296,9 @@ def myLasso(features_train, target_train, features_test, target_test, seed, cv_i
 
     model_CV.fit(features_train, target_train)
 
-    df_coef = pd.DataFrame({'feature': features_train.columns.to_list(),
-                            'coef': model_CV.coef_}).sort_values(by=['coef'], ascending=False)
+    y_pred = model_CV.predict(features_test)
 
-    y_pred_model_Lasso_fine_tuned = model_CV.predict(features_test)
-    MSE_score = mean_squared_error(target_test, y_pred_model_Lasso_fine_tuned)
-
-    pearson_r, pearson_p = pearsonr(target_test, y_pred_model_Lasso_fine_tuned)
-    spearman_r, spearman_p = spearmanr(target_test, y_pred_model_Lasso_fine_tuned)
-
-    return df_coef, y_pred_model_Lasso_fine_tuned, MSE_score, pearson_r, pearson_p, spearman_r, spearman_p, model_CV
+    return y_pred
 
 # %% function random forest CV
 def myRandomForest(features_train, target_train, features_test, target_test, seed, cv_index):
@@ -345,13 +334,9 @@ def myRandomForest(features_train, target_train, features_test, target_test, see
                          criterion='mse')
 
     RF_model_finetuned.fit(features_train, target_train)
-    RF_predictions = RF_model_finetuned.predict(features_test)
+    y_pred = RF_model_finetuned.predict(features_test)
 
-    MSE_score = mean_squared_error(target_test, RF_predictions)
-    pearson_r, pearson_p = pearsonr(target_test, RF_predictions)
-    spearman_r, spearman_p = spearmanr(target_test, RF_predictions)
-
-    return parameters, MSE_score, pearson_r, pearson_p, spearman_r, spearman_p
+    return y_pred
 
 
 # the main model function
@@ -371,9 +356,8 @@ def main():
                         default='None')
     parser.add_argument("--dim_size",
                         type=int)
-    parser.add_argument("--save_model",
-                        type=str,
-                        default='True')
+    parser.add_argument("--output_name",
+                        type=str)
 
     args = parser.parse_args()
 
@@ -381,8 +365,8 @@ def main():
     embedding_data = args.embeddings_data
     other_feature = args.other_feature
     model = args.model
-    save_model = args.save_model
     dim_size = args.dim_size
+    output_name = args.output_name
 
     # read the response data
     ESS09_Responses_UK = pd.read_csv(response_data,
@@ -423,7 +407,7 @@ def main():
                                                          dummy=True,
                                                          fold_n=10)
 
-    prediction_results_ls = []
+    prediction_results_df = pd.DataFrame()
 
     #go over the folds
     for split_id in range(len(split_results)):
@@ -441,94 +425,66 @@ def main():
                                 how='left',
                                 on=['pp_id']).score
 
-        baseline_midpoint = mean_squared_error(y_test, [0.5] * len(y_test))
-        baseline_average_all_responses = mean_squared_error(y_test, [np.mean(y_train)] * len(y_test))
-        baseline_average_response_within = mean_squared_error(y_test, test_pp_pred)
-        baseline_best_pearson_r, baseline_best_pearson_p = pearsonr(y_test, test_pp_pred)
-        baseline_best_spearman_r, baseline_best_spearman_p = spearmanr(y_test, test_pp_pred)
-
-        prediction_results = {'fold_id': split_id,
-                              'baseline_midpoint': baseline_midpoint,
-                              'baseline_average_all_responses': baseline_average_all_responses,
-                              'baseline_average_response_within': baseline_average_response_within,
-                              'baseline_best_pearson_r': baseline_best_pearson_r,
-                              'baseline_best_pearson_p': baseline_best_pearson_p,
-                              'baseline_best_spearman_r': baseline_best_spearman_r,
-                              'baseline_best_spearman_p': baseline_best_spearman_p}
+        prediction_results = {'fold_id': [split_id] * len(y_test),
+                              'y_true': y_test,
+                              'ave_all_pred': [np.mean(y_train)] * len(y_test),
+                              'ave_person_pred': test_pp_pred}
 
         if model in ["lasso", "ridge"]:
-            df_coef, y_pred_model_Lasso_fine_tuned, MSE_score, pearson_r, pearson_p, spearman_r, spearman_p, lasso_model_CV = myLasso(features_train=x_train,
-                                                                                                                                      target_train=y_train,
-                                                                                                                                      features_test=x_test,
-                                                                                                                                      target_test=y_test,
-                                                                                                                                      seed=42,
-                                                                                                                                      cv_index=cv_index,
-                                                                                                                                      type=model)
-            prediction_results['model'] = model
+            y_pred = myLasso(features_train=x_train,
+                             target_train=y_train,
+                             features_test=x_test,
+                             target_test=y_test,
+                             seed=42,
+                             cv_index=cv_index,
+                             type=model)
+            prediction_results['model'] = [model] * len(y_test)
+            prediction_results['y_pred'] = y_pred
+
             if embedding_data == 'None':
                 if other_feature == 'random':
-                    prediction_results['feature'] = other_feature + str(dim_size)
+                    prediction_results['feature'] = [other_feature + str(dim_size)] * len(y_test)
                 else:
-                    prediction_results['feature'] = other_feature
+                    prediction_results['feature'] = [other_feature] * len(y_test)
             else:
-                prediction_results['feature'] = embedding_data
-            prediction_results['MSE'] = MSE_score
-            prediction_results['Pearson_R'] = pearson_r
-            prediction_results['Pearson_P'] = pearson_p
-            prediction_results['Spearman_R'] = spearman_r
-            prediction_results['Spearman_P'] = spearman_p
-            prediction_results_ls.append(prediction_results)
+                prediction_results['feature'] = [embedding_data] * len(y_test)
 
-            if save_model == 'True':
-                if embedding_data == 'None':
-                    save_model_name = "./models/" + model + "_" + other_feature + ".pkl"
-                else:
-                    save_model_name = "./models/" + model + "_" + embedding_data + ".pkl"
-                with open(save_model_name, 'wb') as handle:
-                    pickle.dump(lasso_model_CV, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            prediction_results = pd.DataFrame(prediction_results)
+            prediction_results_df = pd.concat([prediction_results_df, prediction_results])
 
         elif model == "rf":
-            rf_parameters, MSE_score, pearson_r, pearson_p, spearman_r, spearman_p = myRandomForest(features_train=x_train,
-                                                                                                    target_train=y_train,
-                                                                                                    features_test=x_test,
-                                                                                                    target_test=y_test,
-                                                                                                    seed=42,
-                                                                                                    cv_index=cv_index)
+            y_pred = myRandomForest(features_train=x_train,
+                                    target_train=y_train,
+                                    features_test=x_test,
+                                    target_test=y_test,
+                                    seed=42,
+                                    cv_index=cv_index)
 
-            prediction_results['model'] = "rf"
+            prediction_results['model'] = ["rf"] * len(y_test)
+            prediction_results['y_pred'] = y_pred
+
             if embedding_data == 'None':
                 if other_feature == 'random':
-                    prediction_results['feature'] = other_feature + str(dim_size)
+                    prediction_results['feature'] = [other_feature + str(dim_size)] * len(y_test)
                 else:
-                    prediction_results['feature'] = other_feature
+                    prediction_results['feature'] = [other_feature] * len(y_test)
             else:
-                prediction_results['feature'] = embedding_data
-            prediction_results['MSE'] = MSE_score
-            prediction_results['Pearson_R'] = pearson_r
-            prediction_results['Pearson_P'] = pearson_p
-            prediction_results['Spearman_R'] = spearman_r
-            prediction_results['Spearman_P'] = spearman_p
-            prediction_results_ls.append(prediction_results)
+                prediction_results['feature'] = [embedding_data] * len(y_test)
 
-            if save_model == 'True':
-                if embedding_data == 'None':
-                    save_model_name = "./models/" + model + "_" + other_feature + ".pkl"
-                else:
-                    save_model_name = "./models/" + model + "_" + embedding_data + ".pkl"
-
-                with open(save_model_name, 'wb') as handle:
-                    pickle.dump(rf_parameters, handle, protocol=pickle.HIGHEST_PROTOCOL)
+            prediction_results = pd.DataFrame(prediction_results)
+            prediction_results_df = pd.concat([prediction_results_df, prediction_results])
 
         else:
             print("Model has to be either lasso or rf.")
             exit()
 
-    prediction_results_df = pd.DataFrame(prediction_results_ls)
+    output_path = './' + output_name + '.csv'
+    output_file = output_name + '.csv'
 
-    if os.path.exists('./prediction_results.csv'):
-        prediction_results_df.to_csv('prediction_results.csv', index=None, header=None, mode='a')
+    if os.path.exists(output_path):
+        prediction_results_df.to_csv(output_file, index=None, header=None, mode='a')
     else:
-        prediction_results_df.to_csv('prediction_results.csv', index=None, mode='a')
+        prediction_results_df.to_csv(output_file, index=None, mode='a')
 
 if __name__ == '__main__':
     main()

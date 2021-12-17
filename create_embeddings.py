@@ -6,6 +6,8 @@ import fasttext.util
 import string
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer, CountVectorizer
+import torchtext.vocab as vocab
+import tensorflow_hub as hub
 
 
 # function to create random embeddings
@@ -83,8 +85,9 @@ def create_embeddings(sentences, question_ids, model_name, save_name, save=True,
         embeddings = []
         for sent in sentences:
             # tokenize the sentences
-            sent = sent.translate(str.maketrans('', '', string.punctuation))
+            sent = sent.translate(str.maketrans('', '', ".,!?'"))
             sent = sent.split(" ")
+            sent = filter(None, sent)
 
             word_vec_ls = []
             for word in sent:
@@ -95,6 +98,38 @@ def create_embeddings(sentences, question_ids, model_name, save_name, save=True,
             embeddings.append(sent_vec)
 
         embedding_df = pd.DataFrame(data=embeddings,
+                                    columns=["dim%d" % (i + 1) for i in range(len(embeddings[0]))])
+
+    elif model_name == 'glove':
+        # load model
+        glove = vocab.GloVe(name='840B', dim=300)
+
+        embeddings = []
+        for sent in sentences:
+            # tokenize the sentences
+            sent = sent.translate(str.maketrans('', '', ".,!?'%"))
+            sent = sent.lower()
+            sent = sent.split(" ")
+            sent = filter(None, sent)
+
+            word_vec_ls = []
+            for word in sent:
+                if word != "demogrant":
+                    vector = glove.vectors[glove.stoi[word]].numpy()
+                    word_vec_ls.append(vector)
+
+            # compute average sentence embedding
+            sent_vec = np.mean(word_vec_ls, axis=0)
+            embeddings.append(sent_vec)
+
+        embedding_df = pd.DataFrame(data=embeddings,
+                                    columns=["dim%d" % (i + 1) for i in range(len(embeddings[0]))])
+
+    elif model_name == 'USE':
+        USE_model = hub.load("https://tfhub.dev/google/universal-sentence-encoder-large/5")
+        embeddings = USE_model(sentences)
+
+        embedding_df = pd.DataFrame(data=embeddings.numpy(),
                                     columns=["dim%d" % (i + 1) for i in range(len(embeddings[0]))])
 
     elif model_name == 'random':
