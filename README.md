@@ -1,4 +1,4 @@
-# Project: Sentence Embeddings for Survey Questions
+# Project: Validity Testing for Text Embeddings Applied to Survey Questions
 
 ### Preparation:
 - Install the environment 
@@ -62,7 +62,7 @@ python convert_pickle_to_csv.py --datafile synthetic_USE
 
 **2.2 For the concrete analysis, see ```./analysis/```.**
 
-### 3. Analysis of Criterion Validity
+### 3. Analysis of Predictive Validity
 **3.1 Generate sentence embeddings for the survey questions**
 ```shell
 python create_embeddings.py --datafile ESS09_Ordinal_20210623.xlsx --model fasttext --savename ESS
