@@ -299,13 +299,13 @@ def main():
 
     pred_df = pd.DataFrame(pred_correct, columns=['pred_binary'])
 
-    if os.path.exists('./probing_results.csv'):
+    if os.path.exists('archive/probing_results.csv'):
         results_df.to_csv('probing_results.csv', index=None, header=None, mode='a')
     else:
         results_df.to_csv('probing_results.csv', index=None, mode='a')
 
-    if os.path.exists('./probing_pred.csv'):
-        df = pd.read_csv('./probing_pred.csv')
+    if os.path.exists('archive/probing_pred.csv'):
+        df = pd.read_csv('archive/probing_pred.csv')
         pred_df = pd.concat([df, pred_df], axis=1)
         pred_df.to_csv('probing_pred.csv', index=None)
     else:
@@ -313,58 +313,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-# # %%
-# embeddings_df = pd.read_pickle('./data/embeddings/synthetic_bert_base_uncased_20210929185434.pkl')
-#
-# # %%
-# embeddings_df = make_random_embeddings(questions_ls, 768)
-#
-# # %%
-# data_questions = df_merged
-# data_embeddings = embeddings_df
-#
-# train_ids = set(data_questions.row_id[(data_questions.length_binned != '15-25') & (
-#     data_questions.similarity != 'high')].to_list())
-# test_ids = set(data_questions.row_id[(data_questions.length_binned == '15-25') & (
-#     data_questions.similarity == 'high')].to_list())
-#
-# test_x = data_embeddings.iloc[list(test_ids), 1:]
-# test_y = data_questions.basic_concept[data_questions.row_id.isin(test_ids)].to_list()
-#
-# train_x = data_embeddings.iloc[list(train_ids), 1:]
-# train_y = data_questions.basic_concept[data_questions.row_id.isin(train_ids)].to_list()
-#
-# assert data_embeddings.iloc[list(train_ids), :].question_id.to_list() == data_questions.row_id[
-#     data_questions.row_id.isin(train_ids)].to_list()
-#
-# model = LogisticRegression(multi_class='multinomial', solver='newton-cg', penalty='none', max_iter=200,
-#                            class_weight='balanced')
-# model.fit(X=train_x, y=train_y)
-# prediction = model.predict(test_x)
-# acc_score = accuracy_score(y_true=test_y, y_pred=prediction)
-#
-# dummy_clf = DummyClassifier(strategy="most_frequent")
-# dummy_clf.fit(train_x, train_y)
-# dummy_acc = dummy_clf.score(test_x, test_y)
-# print(acc_score, dummy_acc)
-#
-# # %%
-# from collections import Counter
-# # %%
-# Counter(train_y)
-#
-# # %%
-# test_ids
-
-# %%
-from statsmodels.stats.contingency_tables import mcnemar
-import pandas as pd
-
-df = pd.read_csv('./probing_pred.csv')
-
-# %%
-crossTab = pd.crosstab(df.pred_binary1, df.pred_binary2)
-
-# %%
-print(mcnemar(crossTab, exact=False))

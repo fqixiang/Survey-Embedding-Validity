@@ -103,7 +103,7 @@ print(sent)
 # %%
 import fasttext.util
 fasttext.util.download_model('en', if_exists='ignore')
-ft = fasttext.load_model('cc.en.300.bin')
+ft = fasttext.load_model('../cc.en.300.bin')
 
 # %%
 import tensorflow_hub as hub

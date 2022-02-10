@@ -3,7 +3,7 @@
 ### Preparation:
 - Install the environment 
 - Create synthetic data set of survey questions: `python create_synthetic_questions.py`
-- Download the ESS data via ...
+- Download the ESS data via https://www.europeansocialsurvey.org/download.html?file=ESS9e03_1&y=2018
 
 ### 1. Analysis of Content Validity:
 **1.1 Generate sentence embeddings**
