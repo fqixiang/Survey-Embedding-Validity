@@ -63,7 +63,7 @@ def main():
     # print(ESS09_Responses_UK.wkhtot.value_counts(ascending=False, dropna=False).to_string())
 
     # %% list of variables of relevant questions
-    ESS09_Ordinal = pd.read_excel('./data/ESS/ESS09_Ordinal_20210623.xlsx')
+    ESS09_Ordinal = pd.read_excel('./data/ESS/ESS09_Ordinal.xlsx')
     ordinal_var = ESS09_Ordinal.name.to_list()
 
     # %% keep only the relevant background and ordinal variables

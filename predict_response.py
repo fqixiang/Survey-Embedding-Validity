@@ -374,7 +374,7 @@ def main():
 
     if embedding_data == 'None':
         # split data
-        questions_data = pd.read_excel('./data/ESS/ESS09_Ordinal_20210623.xlsx')
+        questions_data = pd.read_excel('./data/ESS/ESS09_Ordinal.xlsx')
         if other_feature == "random":
             split_results = data_split_baseline(survey_data=ESS09_Responses_UK,
                                                 questions_data=questions_data,

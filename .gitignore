@@ -130,10 +130,12 @@ dmypy.json
 
 # data files
 *.rds
-*.pickle
-*.csv
-*.xlsx
+*.Rhistory
 /*.bin
+data/synthetic/Synthetic_Questions_Controlled_Variants.xlsx
+cc.en.300.bin
+cc.en.300.bin.gz
 
 # extra repositories
 .vector_cache/
+data/embeddings/

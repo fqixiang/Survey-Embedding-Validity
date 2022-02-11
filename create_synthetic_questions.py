@@ -943,6 +943,8 @@ def synthetic_generator(datafile, form_request_ls):
 
 # %% Generate synthetic questions
 def main():
+    nltk.download('averaged_perceptron_tagger')
+
     parser = argparse.ArgumentParser()
     parser.add_argument("--datafile", type=str, default='./data/synthetic/Synthetic_Questions_Controlled.xlsx')
 

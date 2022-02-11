@@ -1,12 +1,15 @@
 # Project: Validity Testing for Text Embeddings Applied to Survey Questions
 
 ### Preparation:
-- Install the environment 
-- Create synthetic data set of survey questions: `python create_synthetic_questions.py`
-- Download the ESS data via https://www.europeansocialsurvey.org/download.html?file=ESS9e03_1&y=2018
+- Python 3.7-3.9
+- Install all requirements using ```pip install -r /path/to/requirements.txt```
 
 ### 1. Analysis of Content Validity:
-**1.1 Generate sentence embeddings**
+**1.1 Create synthetic data set of survey question **
+```shell
+python create_synthetic_questions.py
+```
+**1.2 Generate sentence embeddings**
 ```shell
 python create_embeddings.py --datafile Synthetic_Questions_Controlled_Variants.xlsx --model count --savename synthetic
 python create_embeddings.py --datafile Synthetic_Questions_Controlled_Variants.xlsx --model tf_idf --savename synthetic
@@ -26,7 +29,7 @@ python create_BERT_embeddings.py --datafile Synthetic_Questions_Controlled_Varia
 python create_embeddings.py --datafile Synthetic_Questions_Controlled_Variants.xlsx --model all-mpnet-base-v2 --savename synthetic
 python create_embeddings.py --datafile Synthetic_Questions_Controlled_Variants.xlsx --model all-distilroberta-v1 --savename synthetic
 ```
-**1.2 Probing analysis**
+**1.3 Probing analysis**
 ```shell
 python probing.py --features_data Synthetic_Questions_Controlled.xlsx --questions_data Synthetic_Questions_Controlled_Variants.xlsx --embeddings_data synthetic_count.pkl
 python probing.py --features_data Synthetic_Questions_Controlled.xlsx --questions_data Synthetic_Questions_Controlled_Variants.xlsx --embeddings_data synthetic_tf_idf.pkl
@@ -60,21 +63,24 @@ python convert_pickle_to_csv.py --datafile synthetic_stsb_roberta_base_v2
 python convert_pickle_to_csv.py --datafile synthetic_USE
 ```
 
-**2.2 For the concrete analysis, see ```./analysis/```.**
+**2.2 For the concrete analysis, see ```./analysisR/```.**
+Note that R is needed for the analysis.
 
 ### 3. Analysis of Predictive Validity
+The full ESS data can be downloaded via https://www.europeansocialsurvey.org/download.html?file=ESS9e03_1&y=2018, but this is not necessary here.
+
 **3.1 Generate sentence embeddings for the survey questions**
 ```shell
-python create_embeddings.py --datafile ESS09_Ordinal_20210623.xlsx --model fasttext --savename ESS
-python create_embeddings.py --datafile ESS09_Ordinal_20210623.xlsx --model glove --savename ESS
+python create_embeddings.py --datafile ESS09_Ordinal.xlsx --model fasttext --savename ESS
+python create_embeddings.py --datafile ESS09_Ordinal.xlsx --model glove --savename ESS
 
-python create_embeddings.py --datafile ESS09_Ordinal_20210623.xlsx --model USE --savename ESS
+python create_embeddings.py --datafile ESS09_Ordinal.xlsx --model USE --savename ESS
 
-python create_BERT_embeddings.py --datafile ESS09_Ordinal_20210623.xlsx --model bert-base-uncased --savename ESS
-python create_BERT_embeddings.py --datafile ESS09_Ordinal_20210623.xlsx --model bert-large-uncased --savename ESS
+python create_BERT_embeddings.py --datafile ESS09_Ordinal.xlsx --model bert-base-uncased --savename ESS
+python create_BERT_embeddings.py --datafile ESS09_Ordinal.xlsx --model bert-large-uncased --savename ESS
 
-python create_embeddings.py --datafile ESS09_Ordinal_20210623.xlsx --model all-mpnet-base-v2 --savename ESS
-python create_embeddings.py --datafile ESS09_Ordinal_20210623.xlsx --model all-distilroberta-v1 --savename ESS
+python create_embeddings.py --datafile ESS09_Ordinal.xlsx --model all-mpnet-base-v2 --savename ESS
+python create_embeddings.py --datafile ESS09_Ordinal.xlsx --model all-distilroberta-v1 --savename ESS
 ```
 
 **3.2 Prepare ESS survey response data (data cleaning etc.)**
