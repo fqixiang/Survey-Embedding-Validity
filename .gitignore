@@ -138,4 +138,3 @@ cc.en.300.bin.gz
 
 # extra repositories
 .vector_cache/
-data/embeddings/
