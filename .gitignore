@@ -138,3 +138,8 @@ cc.en.300.bin.gz
 
 # extra repositories
 .vector_cache/
+
+# exclude everything in data/embeddings
+data/embeddings/*
+# exception to the rule
+data/embeddings/.gitkeep
