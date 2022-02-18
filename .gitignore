@@ -132,9 +132,9 @@ dmypy.json
 *.rds
 *.Rhistory
 /*.bin
-data/synthetic/Synthetic_Questions_Controlled_Variants.xlsx
 cc.en.300.bin
 cc.en.300.bin.gz
+/data/synthetic/Synthetic_Questions_Controlled_Variants.xlsx
 
 # extra repositories
 .vector_cache/
